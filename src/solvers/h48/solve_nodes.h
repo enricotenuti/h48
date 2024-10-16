@@ -17,15 +17,14 @@ typedef struct {
 	uint8_t nissbranch;
 	int8_t npremoves;
 	uint8_t premoves[MAXLEN];
-    uint64_t n_nodes;
+	uint64_t n_nodes;
 } dfsarg_nodesh48_t;
 
 
 STATIC void solve_h48_appendsolution_nodes(dfsarg_nodesh48_t *);
 STATIC int64_t solve_h48_dfs_nodes(dfsarg_nodesh48_t *);
 STATIC bool solve_h48_stop_nodes(dfsarg_nodesh48_t *);
-STATIC int64_t solve_h48_nodes(cube_t, int8_t, int8_t,
-    int8_t, uint64_t, const void *, uint64_t, char *, uint64_t *);
+STATIC int64_t solve_h48_nodes(cube_t, int8_t, int8_t, int8_t, uint64_t, const void *, uint64_t, char *, uint64_t *);
 
 
 
@@ -37,7 +36,7 @@ solve_h48_appendsolution_nodes(dfsarg_nodesh48_t *arg)
 	char *solution = *arg->nextsol; 
 
 	strl = writemoves(
-	    arg->moves, arg->nmoves, arg->solutions_size, *arg->nextsol);
+		arg->moves, arg->nmoves, arg->solutions_size, *arg->nextsol);
 
 	if (strl < 0)
 		goto solve_h48_appendsolution_error;
@@ -51,7 +50,7 @@ solve_h48_appendsolution_nodes(dfsarg_nodesh48_t *arg)
 
 		invertmoves(arg->premoves, arg->npremoves, invertedpremoves);
 		strl = writemoves(invertedpremoves,
-		    arg->npremoves, arg->solutions_size, *arg->nextsol);
+			arg->npremoves, arg->solutions_size, *arg->nextsol);
 
 		if (strl < 0)
 			goto solve_h48_appendsolution_error;
@@ -74,9 +73,9 @@ solve_h48_stop_nodes(dfsarg_nodesh48_t *arg)
 {
 	uint32_t data, data_inv;
 	int8_t cbound, cbound_inv, h48bound, h48bound_inv;
-    int64_t coord, coord_inv;
+	int64_t coord, coord_inv;
 
-    arg->n_nodes++;
+	arg->n_nodes++;
 	arg->nissbranch = MM_NORMAL;
 	cbound = get_h48_cdata(arg->cube, arg->cocsepdata, &data);
 	if (cbound + arg->nmoves + arg->npremoves > arg->depth)
@@ -87,15 +86,15 @@ solve_h48_stop_nodes(dfsarg_nodesh48_t *arg)
 		return true;
 
 	coord = coord_h48_edges(arg->cube, COCLASS(data), TTREP(data), arg->h);
-    h48bound = get_h48_pval(arg->h48data, coord, arg->k);
+	h48bound = get_h48_pval(arg->h48data, coord, arg->k);
 
 	/* If the h48 bound is > 0, we add the base value.    */
 	/* Otherwise, we use the fallback h0k4 value instead. */
 
 	if (arg->k == 2) {
 		if (h48bound == 0) {
-            h48bound = get_h48_pval(
-                arg->h48data_fallback, coord >> arg->h, 4);
+			h48bound = get_h48_pval(
+				arg->h48data_fallback, coord >> arg->h, 4);
 		} else {
 			h48bound += arg->base;
 		}
@@ -106,12 +105,12 @@ solve_h48_stop_nodes(dfsarg_nodesh48_t *arg)
 		arg->nissbranch = MM_INVERSEBRANCH;
 
 	coord_inv = coord_h48_edges(
-        arg->inverse, COCLASS(data_inv), TTREP(data_inv), arg->h);
-    h48bound_inv = get_h48_pval(arg->h48data, coord_inv, arg->k);
+		arg->inverse, COCLASS(data_inv), TTREP(data_inv), arg->h);
+	h48bound_inv = get_h48_pval(arg->h48data, coord_inv, arg->k);
 	if (arg->k == 2) {
 		if (h48bound_inv == 0) {
-            h48bound_inv = get_h48_pval(
-                arg->h48data_fallback, coord_inv >> arg->h, 4);
+			h48bound_inv = get_h48_pval(
+				arg->h48data_fallback, coord_inv >> arg->h, 4);
 		} else {
 			h48bound_inv += arg->base;
 		}
@@ -155,9 +154,9 @@ solve_h48_dfs_nodes(dfsarg_nodesh48_t *arg)
 				nextarg.premoves[arg->npremoves] = m;
 				nextarg.inverse = move(arg->inverse, m);
 				nextarg.cube = premove(arg->cube, m);
-                nextarg.n_nodes=arg->n_nodes;
+				nextarg.n_nodes=arg->n_nodes;
 				ret += solve_h48_dfs_nodes(&nextarg);
-                arg->n_nodes=nextarg.n_nodes;
+				arg->n_nodes=nextarg.n_nodes;
 			}
 		}
 	} else {
@@ -168,9 +167,9 @@ solve_h48_dfs_nodes(dfsarg_nodesh48_t *arg)
 				nextarg.moves[arg->nmoves] = m;
 				nextarg.cube = move(arg->cube, m);
 				nextarg.inverse = premove(arg->inverse, m);
-                nextarg.n_nodes=arg->n_nodes;
+				nextarg.n_nodes=arg->n_nodes;
 				ret += solve_h48_dfs_nodes(&nextarg);
-                arg->n_nodes=nextarg.n_nodes;
+				arg->n_nodes=nextarg.n_nodes;
 			}
 		}
 	}
@@ -188,7 +187,7 @@ solve_h48_nodes(
 	const void *data,
 	uint64_t solutions_size,
 	char *solutions,
-    uint64_t *n_nodes_tot
+	uint64_t *n_nodes_tot
 )
 {
 	_Atomic int64_t nsols;
@@ -210,7 +209,7 @@ solve_h48_nodes(
 		.h48data = (uint8_t *)data + COCSEP_FULLSIZE + INFOSIZE,
 		.solutions_size = solutions_size,
 		.nextsol = &solutions,
-        .n_nodes=0
+		.n_nodes=0
 	};
 
 	if (info.bits == 2) {
@@ -226,15 +225,15 @@ solve_h48_nodes(
 
 	nsols = 0;
 	for (arg.depth = minmoves;
-	     arg.depth <= maxmoves && nsols < maxsolutions;
-	     arg.depth++)
+		 arg.depth <= maxmoves && nsols < maxsolutions;
+		 arg.depth++)
 	{
 		LOG("Found %" PRId64 " solutions, searching at depth %"
-		    PRId8 "\n", nsols, arg.depth);
+			PRId8 "\n", nsols, arg.depth);
 		arg.nmoves = 0;
 		arg.npremoves = 0;
 		solve_h48_dfs_nodes(&arg);
-        *n_nodes_tot = arg.n_nodes;
+	*n_nodes_tot = arg.n_nodes;
 	}
 	**arg.nextsol = '\0';
 	(*arg.nextsol)++;

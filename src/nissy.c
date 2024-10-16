@@ -509,10 +509,10 @@ nissy_solve(
 			return NISSY_ERROR_INVALID_SOLVER;
 		} else {
 			return THREADS > 1 ?
-			    solve_h48_multithread(c, minmoves, maxmoves,
-			        maxsols, data_size, data, sols_size, sols) :
-			    solve_h48(c, minmoves, maxmoves, maxsols,
-			        data_size, data, sols_size, sols);
+				solve_h48_multithread(c, minmoves, maxmoves,
+					maxsols, data_size, data, sols_size, sols) :
+				solve_h48(c, minmoves, maxmoves, maxsols,
+					data_size, data, sols_size, sols);
 		}
 	} else {
 		LOG("solve: unknown solver '%s'\n", solver);
@@ -591,22 +591,22 @@ nissy_solve_nodes(
 }
 
 int count_moves(char *s, int len) {
-    int count = 0; 
-    char *p = s;
+	int count = 0; 
+	char *p = s;
 
-    while (p < s + len) { 
-        while (p < s + len && (*p == ' ' || *p == '\n' || *p == '\t')) p++;
-    
-        if (p >= s + len || *p == '\0') break;
+	while (p < s + len) { 
+		while (p < s + len && (*p == ' ' || *p == '\n' || *p == '\t')) p++;
 
-        if (readmove(*p) == UINT8_ERROR) {
-            LOG("Error: unknown move '%c'\n", *p);
-            return -1;
-        }
-        if (p + 1 < s + len && readmodifier(*(p + 1)) != 0) p++;
+		if (p >= s + len || *p == '\0') break;
 
-        count++;
-        p++;
-    }
-    return count;
+		if (readmove(*p) == UINT8_ERROR) {
+			LOG("Error: unknown move '%c'\n", *p);
+			return -1;
+		}
+		if (p + 1 < s + len && readmodifier(*(p + 1)) != 0) p++;
+
+		count++;
+		p++;
+	}
+	return count;
 }
