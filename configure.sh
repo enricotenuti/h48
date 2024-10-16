@@ -40,7 +40,7 @@ greparch() {
 }
 
 detectthreads() {
-	echo 16 # TODO: choose based on system
+	echo 8 # TODO: choose based on system
 }
 
 detectarch() {

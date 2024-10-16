@@ -1,0 +1,20 @@
+// FMC 2019
+R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F
+R' U' F D2 L2 B F L2 B D2 F L D R2 U2 B L R2 U' R2 U B U2 R' U' F
+R' U' F U2 R2 D B2 D' R2 B2 L2 F' D R2 B D' R D2 F U2 B' U' R' U' F
+// Try To Get Sub-Trento 2024
+R' U' F R2 D B2 U L2 B2 F2 U2 L2 F' L U' B2 F2 U2 F L' R2 F' R' U' F
+R' U' F U2 L' F2 R D2 F2 L' D2 B2 R' D2 U' R B L R' U B L F R' U' F
+R' U' F D B2 R' D R' D2 B2 D B2 R2 D2 R2 F L2 F' B' L2 R B R' U' F
+// FMC 2024
+R' U' F D R F2 D L F D2 F2 L' U R' L2 D' R2 F2 R2 D L2 U2 R' U' F
+R' U' F L' F2 D B2 U2 B2 F2 R2 D R2 F R2 D R2 D' B L' R U R' U' F
+R' U' F U R' F2 D2 B2 U B2 L2 B2 F2 U2 F' L F D2 L' F2 R U B' R' U' F
+// Euro 2024
+R' U' F L' B2 U D2 L' F2 L F L' B2 D L2 B2 D B2 U' R2 F2 R' U' F
+R' U' F L F' U2 B' R' U2 F2 U2 F2 R2 D2 B' D' U2 B2 F2 R' D R' U' F
+R' U' F U2 F2 U2 B2 F' U2 F2 L2 R D' B L2 R' D U2 B D F' R' U' F
+// FMC Italy 2024
+R' U' F U2 B2 F2 R' B2 L' B2 U2 D L R2 U L' R' F U' R D2 B2 R' U' F 
+R' U' F D2 L2 B2 U B2 D B2 L2 U2 L' U2 F' D' B F L' D2 U L F2 R' U' F
+R' U' F L' F B' L' F' D' F2 R' B' D F L2 U2 R D2 B2 U2 D2 R' U' F

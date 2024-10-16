@@ -280,6 +280,23 @@ long long nissy_solve(
 	char sols[sols_size]
 );
 
+long long nissy_solve_nodes(
+   const char cube[static NISSY_SIZE_B32],
+   const char *solver,
+   unsigned nissflag,
+   unsigned minmoves,
+   unsigned maxmoves,
+   unsigned maxsolutions,
+   int optimal,
+   unsigned long long data_size,
+   const char data[data_size],
+   unsigned sols_size,
+   char sols[sols_size],
+   unsigned long long *n_nodes_tot
+);
+
+int count_moves(char *, int);
+
 /*
 Set a global logger function used by this library.
 

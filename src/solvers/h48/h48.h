@@ -5,4 +5,5 @@
 #include "gendata_h48.h"
 #include "stats.h"
 #include "solve.h"
+#include "solve_nodes.h"
 #include "solve_multithread.h"

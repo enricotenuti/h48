@@ -528,3 +528,85 @@ nissy_setlogger(
 	nissy_log = log;
 	return NISSY_OK;
 }
+
+
+long long
+nissy_solve_nodes(
+	const char cube[static NISSY_SIZE_B32],
+	const char *solver, 
+	unsigned nissflag,
+	unsigned minmoves,
+	unsigned maxmoves,
+	unsigned maxsols,
+	int optimal,
+	unsigned long long data_size,
+	const char data[data_size],
+	unsigned sols_size,
+	char sols[sols_size],
+	unsigned long long *nodes
+)
+{
+	cube_t c;
+	int p;
+	uint8_t h, k;
+
+	if (solver == NULL) {
+		LOG("Error: 'solver' argument is NULL\n");
+		return NISSY_ERROR_NULL_POINTER;
+	}
+
+	c = readcube_B32(cube);
+
+	if (!isconsistent(c)) {
+		LOG("solve: cube is invalid\n");
+		return NISSY_ERROR_INVALID_CUBE;
+	}
+
+	if (!issolvable(c)) {
+		LOG("solve: cube is not solvable\n");
+		return NISSY_ERROR_UNSOLVABLE_CUBE;
+	}
+
+	if (maxsols == 0) {
+		LOG("solve: 'maxsols' is 0, returning no solution\n");
+		return 0;
+	}
+
+	if (!strncmp(solver, "h48", 3)) {
+		if (!strcmp(solver, "h48stats"))
+			return solve_h48stats(c, maxmoves, data, sols);
+
+		p = parse_h48_solver(solver, &h, &k);
+		if (p != 0) {
+			LOG("solve: unknown solver %s\n", solver);
+			return NISSY_ERROR_INVALID_SOLVER;
+		} else {
+			return solve_h48_nodes(c, minmoves, maxmoves, maxsols,
+			        data_size, data, sols_size, sols, nodes);
+		}
+	} else {
+		LOG("solve: unknown solver '%s'\n", solver);
+		return NISSY_ERROR_INVALID_SOLVER;
+	}
+}
+
+int count_moves(char *s, int len) {
+    int count = 0; 
+    char *p = s;
+
+    while (p < s + len) { 
+        while (p < s + len && (*p == ' ' || *p == '\n' || *p == '\t')) p++;
+    
+        if (p >= s + len || *p == '\0') break;
+
+        if (readmove(*p) == UINT8_ERROR) {
+            LOG("Error: unknown move '%c'\n", *p);
+            return -1;
+        }
+        if (p + 1 < s + len && readmodifier(*(p + 1)) != 0) p++;
+
+        count++;
+        p++;
+    }
+    return count;
+}
