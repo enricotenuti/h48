@@ -68,7 +68,7 @@ void run_all_scrambles(void) {
 
 	printf("Solved the following scrambles with timings:\n\n");
 
-	FILE *output_file = fopen("./tools/400_benchmark_performance/compressed_results.txt", "w");
+	FILE *output_file = fopen("./tools/400_benchmark_common/compressed_results.txt", "w");
 	if (!output_file) {
 		printf("Error: Could not open output file for writing\n");
 		return;
@@ -148,7 +148,7 @@ int read_scrambles_from_file(const char *filename, char **scrambles) {
 
 int main(int argc, char **argv) {
 	char tables_filename[255];
-	char scrambles_filename[255] = "./tools/400_benchmark_performance/scrambles.txt";
+	char scrambles_filename[255] = "./tools/400_benchmark_common/scrambles.txt";
 
 	if (argc < 2) {
 		printf("Error: not enough arguments. A solver must be given.\n");

@@ -24,10 +24,10 @@ case $input in
 		echo "Architecture Benchmark..."
 		make clean
 		THREADS=$THREADS ./configure.sh
-		TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+		TOOL=benchmark_common TOOLARGS="$ARGS" make tool
 		make clean
 		THREADS=$THREADS ARCH=PORTABLE ./configure.sh
-		TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+		TOOL=benchmark_common TOOLARGS="$ARGS" make tool
 		;;
 	memory)
 		echo "Memory Benchmark..."
@@ -35,7 +35,7 @@ case $input in
 			make clean
 			THREADS=$THREADS ./configure.sh
 			M_ARGS="h48h${i}k2"
-			TOOL=benchmark_performance TOOLARGS="$M_ARGS" make tool
+			TOOL=benchmark_common TOOLARGS="$M_ARGS" make tool
 		done
 		;;
 	nodes)
@@ -50,7 +50,7 @@ case $input in
 		for i in 1 2 4 8 16; do
 			make clean
 			THREADS=$i ./configure.sh
-			TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+			TOOL=benchmark_common TOOLARGS="$ARGS" make tool
 		done
 		;;
 	*)

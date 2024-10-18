@@ -7,44 +7,24 @@
 #define SOL_BUFFER_LEN 1000
 #define MAX_SCRAMBLES 100  // Limite massimo per il numero di scrambles che può essere letto
 
-// Variabili globali
 char *scrambles[MAX_SCRAMBLES + 1];
 char *solver;
 int64_t size = 0;
 char *buf;
 
-// Utilizzo di typedef per le strutture
-
-// Argomenti dello scramble
-typedef struct {
+struct ScrambleArgs {
 	int scramble_idx;
-} ScrambleArgs;
-
-// Informazioni della soluzione
-typedef struct {
-	char solution[SOL_BUFFER_LEN];
-	int solution_length;
-} SolutionInfo;
-
-// Informazioni sullo scramble (tempo e nodi visitati)
-typedef struct {
-	double time_taken;
-	unsigned long long nodes_visited;
-} ScrambleInfo;
+};
 
 // Funzione di timer per un singolo scramble
-static double timerun_single_scramble(void (*run)(ScrambleArgs *, SolutionInfo *, ScrambleInfo *), 
-									  ScrambleArgs *args, SolutionInfo *solution_info, 
-									  ScrambleInfo *scramble_info) {
+static double timerun_single_scramble(void (*run)(struct ScrambleArgs *, char *, int *), struct ScrambleArgs *args, char *solution, int *solution_length) {
 	struct timespec start, end;
 	double tdiff, tdsec, tdnano;
 
 	fflush(stdout);
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
-
-	// Esegue la funzione run per il singolo scramble
-	run(args, solution_info, scramble_info);
-
+	run(args, solution, solution_length);  // Esegue la funzione run per il singolo scramble
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	tdsec = end.tv_sec - start.tv_sec;
@@ -54,46 +34,41 @@ static double timerun_single_scramble(void (*run)(ScrambleArgs *, SolutionInfo *
 	return tdiff;
 }
 
-// Funzione per eseguire un singolo scramble
-void run_scramble(ScrambleArgs *args, SolutionInfo *solution_info, ScrambleInfo *scramble_info) {
+// Modifica della funzione run_scramble per evitare ricorsione
+void run_scramble(struct ScrambleArgs *args, char *solution, int *solution_length) {
 	int scramble_idx = args->scramble_idx;  // Estrai l'indice dello scramble
 	int64_t n;
-	char cube[22];
+	char sol[SOL_BUFFER_LEN], cube[22];
 
 	printf("%d. %s\n", scramble_idx + 1, scrambles[scramble_idx]);
 	printf("Solving scramble %s\n", scrambles[scramble_idx]);
 
-	// Applicazione del scramble al cubo
 	if (nissy_applymoves(NISSY_SOLVED_CUBE, scrambles[scramble_idx], cube) == -1) {
 		printf("Invalid scramble\n");
-		strcpy(solution_info->solution, "Invalid scramble");
-		solution_info->solution_length = 0;
+		strcpy(solution, "Invalid scramble");
+		*solution_length = 0;
 		return;
 	}
 
-	// Risoluzione dello scramble
-	n = nissy_solve_nodes(cube, solver, NISSY_NISSFLAG_NORMAL, 0, 20, 1, -1, size, buf, SOL_BUFFER_LEN, 
-						  solution_info->solution, &scramble_info->nodes_visited);
-
+	n = nissy_solve(cube, solver, NISSY_NISSFLAG_NORMAL, 0, 20, 1, -1, size, buf, SOL_BUFFER_LEN, sol);
 	if (n == 0) {
 		printf("No solution found\n");
-		strcpy(solution_info->solution, "No solution found");
-		solution_info->solution_length = 0;
+		strcpy(solution, "No solution found");
+		*solution_length = 0;
 	} else {
-		printf("Solutions:\n%s\n", solution_info->solution);
-		solution_info->solution_length = count_moves(solution_info->solution, strlen(solution_info->solution));
+		printf("Solutions:\n%s\n", sol);
+		strcpy(solution, sol);
+		*solution_length = count_moves(solution, strlen(solution));
 	}
 }
 
-// Funzione per eseguire tutti gli scrambles
 void run_all_scrambles(void) {
+	double times[MAX_SCRAMBLES];
 	double total_time = 0.0, average_time = 0.0;
-	unsigned long long total_nodes = 0;
-	double average_nodes = 0.0;
 
 	printf("Solved the following scrambles with timings:\n\n");
 
-	FILE *output_file = fopen("./tools/401_benchmark_nodes/compressed_results.txt", "w");
+	FILE *output_file = fopen("./tools/401_benchmark_performance/compressed_results.txt", "w");
 	if (!output_file) {
 		printf("Error: Could not open output file for writing\n");
 		return;
@@ -101,54 +76,41 @@ void run_all_scrambles(void) {
 
 	int i;
 	for (i = 0; scrambles[i] != NULL; i++) {
-		ScrambleArgs args;
-		SolutionInfo solution_info;
-		ScrambleInfo scramble_info;
-
+		struct ScrambleArgs args;
 		args.scramble_idx = i;
-		solution_info.solution_length = 0;
-		scramble_info.nodes_visited = 0;
 
-		// Misura il tempo di esecuzione per ogni scramble
-		scramble_info.time_taken = timerun_single_scramble(run_scramble, &args, &solution_info, &scramble_info);
+		char solution[SOL_BUFFER_LEN];
+		int solution_length = 0;
 
-		total_time += scramble_info.time_taken;
-		total_nodes += scramble_info.nodes_visited;
+		double scramble_time = timerun_single_scramble(run_scramble, &args, solution, &solution_length);
+		times[i] = scramble_time;
+		total_time += scramble_time;
 
-		// Scrive i risultati sul file
 		fprintf(output_file, "%d. %s\n", i + 1, scrambles[i]);
-		fprintf(output_file, "Solution: %s\n", solution_info.solution);
-		fprintf(output_file, "Length of solution: %d\n", solution_info.solution_length);
-		fprintf(output_file, "Nodes visited: %llu\n", scramble_info.nodes_visited);
-		fprintf(output_file, "Avg time per node: %.4fns\n", (scramble_info.time_taken / scramble_info.nodes_visited)*1e9);
-		fprintf(output_file, "Time: %.4fs\n", scramble_info.time_taken);
+		fprintf(output_file, "Solution: %s\n", solution);
+		fprintf(output_file, "Length of solution: %d\n", solution_length);
+		fprintf(output_file, "Time for scramble %d: %.4fs\n", i + 1, scramble_time);
 		fprintf(output_file, "-------------------------\n");
 
-		printf("Time for scramble %d: %.4fs\n", i + 1, scramble_info.time_taken);
-		printf("Nodes visited for scramble %d: %llu\n", i + 1, scramble_info.nodes_visited);
+		printf("Time for scramble %d: %.4fs\n", i + 1, scramble_time);
+		printf("Lenght: %d\n", solution_length);
 	}
 
 	if (i > 0) {
 		average_time = total_time / i;
-		average_nodes = (double)total_nodes / i;
 	}
 
 	printf("---------\n");
 	printf("Total time for all scrambles: %.4fs\n", total_time);
 	printf("Average time per scramble: %.4fs\n", average_time);
-	printf("Average nodes visited per scramble: %.2f\n", average_nodes);
 
 	fprintf(output_file, "---------\n");
 	fprintf(output_file, "Total time for all scrambles: %.4fs\n", total_time);
 	fprintf(output_file, "Average time per scramble: %.4fs\n", average_time);
-	fprintf(output_file, "Average nodes visited per scramble: %.2f\n", average_nodes);
-	fprintf(output_file, "Average time per node: %.4fs\n", total_time / total_nodes);
-
 
 	fclose(output_file);
 }
 
-// Funzione per leggere gli scrambles da un file
 int read_scrambles_from_file(const char *filename, char **scrambles) {
 	FILE *file = fopen(filename, "r");
 	if (!file) {
@@ -184,10 +146,9 @@ int read_scrambles_from_file(const char *filename, char **scrambles) {
 	return 0;
 }
 
-// Funzione main
 int main(int argc, char **argv) {
 	char tables_filename[255];
-	char scrambles_filename[255] = "./tools/401_benchmark_nodes/scrambles.txt";
+	char scrambles_filename[255] = "./tools/401_benchmark_performance/scrambles.txt";
 
 	if (argc < 2) {
 		printf("Error: not enough arguments. A solver must be given.\n");
