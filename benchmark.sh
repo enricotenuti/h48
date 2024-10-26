@@ -15,27 +15,27 @@ THREADS=8
 
 case $input in
 	performance)
-		echo "Performance Benchmark..."
-		make clean
-		THREADS=$THREADS ./configure.sh
-		TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+		for i in 1 8 64; do
+			make clean
+			THREADS=$i ./configure.sh
+			TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+		done
 		;;
 	architecture)
 		echo "Architecture Benchmark..."
-		make clean
-		THREADS=$THREADS ./configure.sh
-		TOOL=benchmark_common TOOLARGS="$ARGS" make tool
-		make clean
-		THREADS=$THREADS ARCH=PORTABLE ./configure.sh
-		TOOL=benchmark_common TOOLARGS="$ARGS" make tool
+		for i in 1 8; do
+			make clean
+			THREADS=$i ARCH=PORTABLE ./configure.sh
+			TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
+		done
 		;;
 	memory)
 		echo "Memory Benchmark..."
-		for i in {0..7}; do
+		for i in {1..6}; do
 			make clean
 			THREADS=$THREADS ./configure.sh
 			M_ARGS="h48h${i}k2"
-			TOOL=benchmark_common TOOLARGS="$M_ARGS" make tool
+			TOOL=benchmark_performance TOOLARGS="$M_ARGS" make tool
 		done
 		;;
 	nodes)
@@ -46,12 +46,17 @@ case $input in
 		;;
 	multithread)
 		echo "Multithread Benchmark..."
-		make clean
-		for i in 1 2 4 8 16; do
+		for i in 64 32 16 8 4 2 1; do
 			make clean
 			THREADS=$i ./configure.sh
-			TOOL=benchmark_common TOOLARGS="$ARGS" make tool
+			TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
 		done
+		;;
+	depth)
+		echo "Depth Benchmark..."
+			make clean
+			THREADS=$THREADS ./configure.sh
+			TOOL=benchmark_performance TOOLARGS="$ARGS" make tool
 		;;
 	*)
 	echo "Invalid argument. Possible values:"
@@ -60,6 +65,7 @@ case $input in
 	echo "  - memory"
 	echo "  - nodes"
 	echo "  - multithread"
+	echo "  - depth"
 	exit 1
 	;;
 esac

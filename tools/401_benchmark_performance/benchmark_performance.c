@@ -5,7 +5,7 @@
 #include <time.h>
 
 #define SOL_BUFFER_LEN 1000
-#define MAX_SCRAMBLES 100  // Limite massimo per il numero di scrambles che può essere letto
+#define MAX_SCRAMBLES 200  // Limite massimo per il numero di scrambles che può essere letto
 
 char *scrambles[MAX_SCRAMBLES + 1];
 char *solver;
@@ -15,6 +15,26 @@ char *buf;
 struct ScrambleArgs {
 	int scramble_idx;
 };
+
+double sqrt_approx(double num) {
+    double guess = num / 2.0;  // Inizializza una stima approssimata
+    double epsilon = 0.00001;  // Precisione dell'approssimazione
+
+    while ((guess * guess - num) > epsilon || (num - guess * guess) > epsilon) {
+        guess = (guess + num / guess) / 2.0;
+    }
+
+    return guess;
+}
+
+// Funzione di confronto per l'ordinamento dei tempi (da usare con qsort)
+int compare_doubles(const void *a, const void *b) {
+    double arg1 = *(const double *)a;
+    double arg2 = *(const double *)b;
+    if (arg1 < arg2) return -1;
+    if (arg1 > arg2) return 1;
+    return 0;
+}
 
 // Funzione di timer per un singolo scramble
 static double timerun_single_scramble(void (*run)(struct ScrambleArgs *, char *, int *), struct ScrambleArgs *args, char *solution, int *solution_length) {
@@ -64,50 +84,76 @@ void run_scramble(struct ScrambleArgs *args, char *solution, int *solution_lengt
 }
 
 void run_all_scrambles(void) {
-	double total_time = 0.0, average_time = 0.0;
+    double total_time = 0.0, average_time = 0.0, variance = 0.0, variance_sum = 0.0, std_deviation = 0.0, median = 0.0;
 
-	printf("Solved the following scrambles with timings:\n\n");
+    printf("Solved the following scrambles with timings:\n\n");
 
-	FILE *output_file = fopen("./tools/401_benchmark_performance/compressed_results.txt", "w");
-	if (!output_file) {
-		printf("Error: Could not open output file for writing\n");
-		return;
-	}
+    FILE *output_file = fopen("./tools/401_benchmark_performance/compressed_results.txt", "w");
+    if (!output_file) {
+        printf("Error: Could not open output file for writing\n");
+        return;
+    }
 
-	int i;
-	for (i = 0; scrambles[i] != NULL; i++) {
-		struct ScrambleArgs args;
-		args.scramble_idx = i;
+    int i;
+    double scramble_times[MAX_SCRAMBLES];  // Array per memorizzare i tempi per ogni scramble
 
-		char solution[SOL_BUFFER_LEN];
-		int solution_length = 0;
+    for (i = 0; scrambles[i] != NULL; i++) {
+        struct ScrambleArgs args;
+        args.scramble_idx = i;
 
-		double scramble_time = timerun_single_scramble(run_scramble, &args, solution, &solution_length);
-		total_time += scramble_time;
+        char solution[SOL_BUFFER_LEN];
+        int solution_length = 0;
 
-		fprintf(output_file, "%d. %s\n", i + 1, scrambles[i]);
-		fprintf(output_file, "Solution: %s\n", solution);
-		fprintf(output_file, "Length of solution: %d\n", solution_length);
-		fprintf(output_file, "Time for scramble %d: %.4fs\n", i + 1, scramble_time);
-		fprintf(output_file, "-------------------------\n");
+        double scramble_time = timerun_single_scramble(run_scramble, &args, solution, &solution_length);
+        scramble_times[i] = scramble_time;  // Salva il tempo per questo scramble
+        total_time += scramble_time;
 
-		printf("Time for scramble %d: %.4fs\n", i + 1, scramble_time);
-		printf("Lenght: %d\n", solution_length);
-	}
+        fprintf(output_file, "%d. %s\n", i + 1, scrambles[i]);
+        fprintf(output_file, "Solution: %s\n", solution);
+        fprintf(output_file, "Length of solution: %d\n", solution_length);
+        fprintf(output_file, "Time for scramble %d: %.4fs\n", i + 1, scramble_time);
+        fprintf(output_file, "-------------------------\n");
 
-	if (i > 0) {
-		average_time = total_time / i;
-	}
+        printf("Time for scramble %d: %.4fs\n", i + 1, scramble_time);
+        printf("Length: %d\n", solution_length);
+    }
 
-	printf("---------\n");
-	printf("Total time for all scrambles: %.4fs\n", total_time);
-	printf("Average time per scramble: %.4fs\n", average_time);
+    if (i > 0) {
+        average_time = total_time / i;
 
-	fprintf(output_file, "---------\n");
-	fprintf(output_file, "Total time for all scrambles: %.4fs\n", total_time);
-	fprintf(output_file, "Average time per scramble: %.4fs\n", average_time);
+        // Calcolo della varianza
+        for (int j = 0; j < i; j++) {
+            variance_sum += (scramble_times[j] - average_time) * (scramble_times[j] - average_time);
+        }
+        variance = variance_sum / i;
 
-	fclose(output_file);
+        // Calcolo della deviazione standard
+        std_deviation = sqrt_approx(variance);  // Usa sqrt_approx invece di sqrt()
+
+        // Ordina i tempi per calcolare la mediana
+        qsort(scramble_times, i, sizeof(double), compare_doubles);
+
+        // Calcolo della mediana
+        if (i % 2 == 0) {
+            median = (scramble_times[i / 2 - 1] + scramble_times[i / 2]) / 2.0;
+        } else {
+            median = scramble_times[i / 2];
+        }
+    }
+
+    printf("---------\n");
+    printf("Total time for all scrambles: %.4fs\n", total_time);
+    printf("Average time per scramble: %.4fs\n", average_time);
+    printf("Median time: %.4fs\n", median);  // Stampa della mediana
+    printf("Standard deviation of times: %.4fs\n", std_deviation);  // Stampa della deviazione standard
+
+    fprintf(output_file, "---------\n");
+    fprintf(output_file, "Total time for all scrambles: %.4fs\n", total_time);
+    fprintf(output_file, "Average time per scramble: %.4fs\n", average_time);
+    fprintf(output_file, "Median time: %.4fs\n", median);  // Scrivi la mediana nel file
+    fprintf(output_file, "Standard deviation of times: %.4fs\n", std_deviation);  // Scrivi la deviazione standard nel file
+
+    fclose(output_file);
 }
 
 int read_scrambles_from_file(const char *filename, char **scrambles) {

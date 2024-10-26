@@ -168,14 +168,16 @@ solve_h48_dfs(dfsarg_solveh48_t *arg)
 
 	if (solve_h48_stop(arg))
 		return 0;
-
-	if (issolved(arg->cube)) {
-		if (arg->nmoves + arg->npremoves != arg->depth)
+	
+	if (arg->nmoves + arg->npremoves == arg->depth){
+		if(issolved(arg->cube)) {
+			solve_h48_appendsolution(arg);
+			return 1;
+		} else {
 			return 0;
-		solve_h48_appendsolution(arg);
-		return 1;
+		}
 	}
-
+	
 	nextarg = *arg;
 	ret = 0;
 	uint32_t allowed;
