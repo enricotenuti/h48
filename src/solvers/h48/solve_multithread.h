@@ -214,14 +214,15 @@ solve_h48_single(dfsarg_solveh48_t *arg, task_queue_t *tq)
 	if (solve_h48_stop(arg))
 		return 0;
 
-	if (arg->nmoves + arg->npremoves == arg->depth){
-		if(issolved(arg->cube)) {
-			solve_h48_appendsolution_thread(arg, tq);
-			return 1;
-		} else {
+	if (issolved(arg->cube)){
+		if (arg->nmoves + arg->npremoves != arg->depth)
 			return 0;
-		}
+		solve_h48_appendsolution_thread(arg, tq);
+		return 1;
 	}
+
+	if(arg->nmoves + arg->npremoves == arg->depth)
+			return 0;
 
 	nextarg = *arg;
 	ret = 0;
