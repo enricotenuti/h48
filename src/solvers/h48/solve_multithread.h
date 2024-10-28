@@ -221,9 +221,6 @@ solve_h48_single(dfsarg_solveh48_t *arg, task_queue_t *tq)
 		return 1;
 	}
 
-	if(arg->nmoves + arg->npremoves == arg->depth)
-			return 0;
-
 	nextarg = *arg;
 	ret = 0;
 	uint32_t allowed;

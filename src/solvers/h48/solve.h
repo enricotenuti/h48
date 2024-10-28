@@ -176,9 +176,6 @@ solve_h48_dfs(dfsarg_solveh48_t *arg)
 		return 1;
 	}
 
-	if (arg->nmoves + arg->npremoves == arg->depth)
-		return 0;
-
 	nextarg = *arg;
 	ret = 0;
 	uint32_t allowed;
